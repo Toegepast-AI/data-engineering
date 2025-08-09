@@ -37,27 +37,44 @@ postgres/
 
 1. **Start the full stack:**
    ```bash
+   cd 01-foundations/postgres
    docker-compose up -d
    ```
 
-2. **Ingest sample data:**
+2. **Ingest sample data using the container:**
+   ```bash
+   docker-compose run --rm data-ingestion \
+     --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz" \
+     --table-name yellow_tripdata_2021_01 \
+     --user root \
+     --password root \
+     --host postgres \
+     --db ny_taxi
+   ```
+
+3. **Or ingest data locally:**
    ```bash
    python scripts/ingest-data.py \
      --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz" \
-     --table-name yellow_tripdata_2021_01
+     --table-name yellow_tripdata_2021_01 \
+     --user root \
+     --password root \
+     --host localhost \
+     --db ny_taxi
    ```
 
-3. **Explore data:**
+4. **Explore data with Marimo:**
    ```bash
-   marimo edit notebooks/explore_data.py
+   # Access via browser at http://localhost:2718
+   # or run locally: marimo edit notebooks/explore_data.py
    ```
 
 ## 🔧 Services
 
-- **PostgreSQL** - Primary database
-- **pgAdmin** - Web-based database admin
-- **Jupyter/Marimo** - Data exploration
-- **Data Pipeline** - Automated processing
+- **PostgreSQL** (port 5432) - Primary database
+- **pgAdmin** (port 8080) - Web-based database admin  
+- **Data Explorer** (port 2718) - Marimo notebook interface
+- **Data Ingestion** - CSV ingestion service (run manually)
 
 ## 🌐 Multi-Cloud Considerations
 

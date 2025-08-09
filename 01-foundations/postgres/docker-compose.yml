@@ -10,9 +10,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres-nyc-taxi-data:/var/lib/postgresql/data
+      - ../../postgres-nyc-taxi-data:/var/lib/postgresql/data
     networks:
-      - taxi-network
+      - pg-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -22,32 +22,39 @@ services:
     ports:
       - "8080:80"
     networks:
-      - taxi-network
+      - pg-network
 
-  data-explorer:
+  # data-explorer:
+  #   build:
+  #     context: .
+  #     dockerfile: containers/Dockerfile.explore
+  #   environment:
+  #     DB_HOST: postgres
+  #   ports:
+  #     - "2718:2718"
+  #   volumes:
+  #     - ./data:/app/data
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - pg-network
+
+  data-ingestion:
     build:
       context: .
-      dockerfile: Dockerfile.explore
+      dockerfile: containers/Dockerfile.ingest
     environment:
       DB_HOST: postgres
-    ports:
-      - "2718:2718"
     volumes:
       - ./data:/app/data
     depends_on:
       - postgres
     networks:
-      - taxi-network
-
-  data-pipeline:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./data:/app/data
-    networks:
-      - taxi-network
+      - pg-network
+    # This service is meant to be run manually, not started automatically
+    profiles:
+      - manual
 
 networks:
-  taxi-network:
+  pg-network:
     driver: bridge
