@@ -1,120 +1,89 @@
-# Postgres setup locally & GCP with taxi data
+# Data Engineering GCP
 
-## Setup PostgreSQL Database
+A comprehensive collection of data engineering patterns, tools, and best practices for Google Cloud Platform (and multi-cloud environments).
 
-### 1. Run postgres container locally
-```bash
-docker run -it \
-    -e POSTGRES_USER="root"\
-    -e POSTGRES_PASSWORD="root"\
-    -e POSTGRES_DB="ny_taxi"\
-    -v "$PWD/postgres-nyc-taxi-data:/var/lib/postgresql/data"\
-    -p 5432:5432 \
-    postgres:13
+## 📁 Repository Structure
+
+```
+data-engineering-gcp/
+├── 01-foundations/
+│   ├── postgres/                   # Current PostgreSQL work
+│   ├── docker/                     # Containerization patterns
+│   ├── data-modeling/              # Data modeling concepts
+│   └── sql-fundamentals/           # SQL best practices
+├── 02-ingestion/
+│   ├── batch-processing/           # Batch data ingestion
+│   ├── streaming/                  # Real-time data streaming
+│   ├── apis/                       # API data collection
+│   └── file-formats/               # Parquet, Avro, JSON, etc.
+├── 03-storage/
+│   ├── cloud-storage/              # GCS, S3, Azure Blob
+│   ├── data-lakes/                 # Lake patterns
+│   ├── data-warehouses/            # BigQuery, Snowflake, etc.
+│   └── nosql/                      # MongoDB, Cassandra, etc.
+├── 04-processing/
+│   ├── dataflow/                   # Apache Beam/Dataflow
+│   ├── spark/                      # PySpark patterns
+│   ├── dbt/                        # Data transformation
+│   └── airflow/                    # Workflow orchestration
+├── 05-analytics/
+│   ├── bigquery/                   # BigQuery patterns
+│   ├── looker/                     # BI and visualization
+│   ├── ml-pipelines/               # ML data pipelines
+│   └── reporting/                  # Automated reporting
+├── 06-infrastructure/
+│   ├── terraform/                  # IaC for GCP
+│   ├── kubernetes/                 # K8s deployments
+│   ├── monitoring/                 # Observability patterns
+│   └── security/                   # Data security patterns
+├── 07-multi-cloud/
+│   ├── aws-patterns/               # AWS-specific adaptations
+│   ├── azure-patterns/             # Azure-specific adaptations
+│   └── hybrid-cloud/               # Cross-cloud patterns
+├── examples/
+│   ├── end-to-end-projects/        # Complete project examples
+│   ├── use-cases/                  # Industry-specific examples
+│   └── datasets/                   # Sample datasets
+├── docs/
+│   ├── architecture-patterns/      # System design patterns
+│   ├── best-practices/             # General guidelines
+│   └── troubleshooting/            # Common issues & solutions
+└── tools/
+    ├── scripts/                    # Utility scripts
+    ├── containers/                 # Reusable containers
+    └── templates/                  # Project templates
 ```
 
-### 2. Access postgres with pgcli (venv)
-```bash
-pip install pgcli
-pgcli -h localhost -p 5432 -u root -d ny_taxi
-```
+## 🎯 Getting Started
 
-## Data Ingestion
+Each section contains:
+- **README.md** - Overview and concepts
+- **examples/** - Working code examples  
+- **docker-compose.yml** - Local development setup
+- **requirements.txt** - Dependencies
+- **docs/** - Detailed documentation
 
-### Option 1: Download and ingest from URL (Recommended)
-```bash
-# Download and ingest yellow taxi data from January 2021
-python ingest-data.py \
-    --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz" \
-    --table-name yellow_tripdata_2021_01 \
-    --user root \
-    --password root \
-    --host localhost \
-    --port 5432 \
-    --db ny_taxi
-```
+## 🔧 Current Focus: PostgreSQL Foundations
 
-### Option 2: Ingest from local CSV file
-```bash
-# If you have a local CSV file
-python ingest-data.py \
-    --csv-file data/yellow_tripdata_2021-01.csv \
-    --table-name yellow_tripdata_2021_01 \
-    --user root \
-    --password root
-```
+We're starting with PostgreSQL patterns in `01-foundations/postgres/` as the foundation for data engineering concepts.
 
-### Other available datasets:
-```bash
-# February 2021
-python ingest-data.py \
-    --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-02.csv.gz" \
-    --table-name yellow_tripdata_2021_02
+## 🚀 Roadmap
 
-# March 2021
-python ingest-data.py \
-    --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-03.csv.gz" \
-    --table-name yellow_tripdata_2021_03
-```
+- [x] PostgreSQL setup and ingestion patterns
+- [ ] Docker containerization best practices
+- [ ] Data modeling fundamentals
+- [ ] Batch processing with Dataflow
+- [ ] BigQuery integration patterns
+- [ ] dbt transformation workflows
+- [ ] Airflow orchestration
+- [ ] Terraform infrastructure setup
+- [ ] Multi-cloud adaptations
 
-### 3. Verify the data with pgcli
-```sql
-SELECT count(1) FROM yellow_tripdata_2021_01;
-SELECT * FROM yellow_tripdata_2021_01 LIMIT 5;
-```
+## 🤝 Contributing
 
-## Ingest Data with Docker
-
-### Build the ingestion container
-```bash
-docker build -t taxi_ingest:v001 .
-```
-
-### Option 1: Run with environment variable
-```bash
-docker run --rm \
-    --network=pg-network \
-    taxi_ingest:v001 \
-        --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz" \
-        --table-name yellow_tripdata_2021_01 \
-        --user root \
-        --password root \
-        --host pg-database \
-        --port 5432 \
-        --db ny_taxi
-```
-
-## Connecting pgAdmin and Postgres
-```bash
-docker run -it \
-    -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
-    -e PGADMIN_DEFAULT_PASSWORD="root" \
-    -p 8080:80 \
-    dpage/pgadmin4
-```
-
-```bash
-docker network create pg-network
-```
-
-```bash
-docker run -it \
-    -e POSTGRES_USER="root" \
-    -e POSTGRES_PASSWORD="root" \
-    -e POSTGRES_DB="ny_taxi" \
-    -v "$PWD/postgres-nyc-taxi-data:/var/lib/postgresql/data" \
-    -p 5432:5432 \
-    --network=pg-network \
-    --name=pg-database \
-    postgres:13
-```
-
-```bash
-docker run -it \
-    -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
-    -e PGADMIN_DEFAULT_PASSWORD="root" \
-    -p 8080:80 \
-    --network=pg-network \
-    --name=pgadmin \
-    dpage/pgadmin4
-```
+Each pattern should include:
+- Clear documentation
+- Working examples
+- Docker setup for local testing
+- Tests where applicable
+- Multi-cloud considerations
