@@ -5,13 +5,15 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Copy requirements file first (for better caching)
+# Only copy production requirements, not dev dependencies
 COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code
-COPY . .
+COPY datapipeline.py .
+COPY data/ ./data/
 
 # Set environment variables
 ENV PYTHONPATH=/app
