@@ -1,26 +1,10 @@
 # Use Python 3.9 slim image as base
-FROM python:3.9-slim
+FROM python:3.9.1
 
-# Set working directory
+RUN apt-get install wget
+RUN pip install pandas sqlalchemy psycopg2 
+
 WORKDIR /app
+COPY ingest-data.py ingest-data.py
 
-# Copy requirements file first (for better caching)
-# Only copy production requirements, not dev dependencies
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the application code
-COPY datapipeline.py .
-COPY data/ ./data/
-
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
-
-# Create data directory if it doesn't exist
-RUN mkdir -p /app/data
-
-# Set the entrypoint to run the data pipeline
-ENTRYPOINT ["python", "datapipeline.py"]
+ENTRYPOINT [ "python", "ingest-data.py" ]

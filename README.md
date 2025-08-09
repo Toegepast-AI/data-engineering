@@ -19,48 +19,102 @@ pip install pgcli
 pgcli -h localhost -p 5432 -u root -d ny_taxi
 ```
 
-### 3. Create the table structure
-```sql
-CREATE TABLE yellow_tripdata_2021_01 (
-	"VendorID" FLOAT(53), 
-	tpep_pickup_datetime TIMESTAMP WITHOUT TIME ZONE, 
-	tpep_dropoff_datetime TIMESTAMP WITHOUT TIME ZONE, 
-	passenger_count FLOAT(53), 
-	trip_distance FLOAT(53), 
-	"RatecodeID" FLOAT(53), 
-	store_and_fwd_flag TEXT, 
-	"PULocationID" BIGINT, 
-	"DOLocationID" BIGINT, 
-	payment_type FLOAT(53), 
-	fare_amount FLOAT(53), 
-	extra FLOAT(53), 
-	mta_tax FLOAT(53), 
-	tip_amount FLOAT(53), 
-	tolls_amount FLOAT(53), 
-	improvement_surcharge FLOAT(53), 
-	total_amount FLOAT(53), 
-	congestion_surcharge FLOAT(53)
-);
-```
+## Data Ingestion
 
-### 4. Load data into PostgreSQL
-See Marimo notebook
-
-### 5. Verify the data with pgcli
-```sql
-SELECT count(1) FROM yellow_tripdata_2021_1;
-SELECT * FROM yellow_tripdata_2021_1 LIMIT 5;
-```
-
-## Run Data Pipeline
-
-### With Docker (persists processed data)
+### Option 1: Download and ingest from URL (Recommended)
 ```bash
-docker run --rm -v "$(pwd)/data:/app/data" postgres:test
+# Download and ingest yellow taxi data from January 2021
+python ingest-data.py \
+    --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz" \
+    --table-name yellow_tripdata_2021_01 \
+    --user root \
+    --password root \
+    --host localhost \
+    --port 5432 \
+    --db ny_taxi
 ```
 
-### Locally (in venv)
+### Option 2: Ingest from local CSV file
 ```bash
-python datapipeline.py
+# If you have a local CSV file
+python ingest-data.py \
+    --csv-file data/yellow_tripdata_2021-01.csv \
+    --table-name yellow_tripdata_2021_01 \
+    --user root \
+    --password root
 ```
 
+### Other available datasets:
+```bash
+# February 2021
+python ingest-data.py \
+    --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-02.csv.gz" \
+    --table-name yellow_tripdata_2021_02
+
+# March 2021
+python ingest-data.py \
+    --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-03.csv.gz" \
+    --table-name yellow_tripdata_2021_03
+```
+
+### 3. Verify the data with pgcli
+```sql
+SELECT count(1) FROM yellow_tripdata_2021_01;
+SELECT * FROM yellow_tripdata_2021_01 LIMIT 5;
+```
+
+## Ingest Data with Docker
+
+### Build the ingestion container
+```bash
+docker build -t taxi_ingest:v001 .
+```
+
+### Option 1: Run with environment variable
+```bash
+docker run --rm \
+    --network=pg-network \
+    taxi_ingest:v001 \
+        --url "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz" \
+        --table-name yellow_tripdata_2021_01 \
+        --user root \
+        --password root \
+        --host pg-database \
+        --port 5432 \
+        --db ny_taxi
+```
+
+## Connecting pgAdmin and Postgres
+```bash
+docker run -it \
+    -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+    -e PGADMIN_DEFAULT_PASSWORD="root" \
+    -p 8080:80 \
+    dpage/pgadmin4
+```
+
+```bash
+docker network create pg-network
+```
+
+```bash
+docker run -it \
+    -e POSTGRES_USER="root" \
+    -e POSTGRES_PASSWORD="root" \
+    -e POSTGRES_DB="ny_taxi" \
+    -v "$PWD/postgres-nyc-taxi-data:/var/lib/postgresql/data" \
+    -p 5432:5432 \
+    --network=pg-network \
+    --name=pg-database \
+    postgres:13
+```
+
+```bash
+docker run -it \
+    -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+    -e PGADMIN_DEFAULT_PASSWORD="root" \
+    -p 8080:80 \
+    --network=pg-network \
+    --name=pgadmin \
+    dpage/pgadmin4
+```

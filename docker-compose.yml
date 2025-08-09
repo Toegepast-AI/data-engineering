@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: ny_taxi
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-nyc-taxi-data:/var/lib/postgresql/data
+    networks:
+      - taxi-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "8080:80"
+    networks:
+      - taxi-network
+
+  data-explorer:
+    build:
+      context: .
+      dockerfile: Dockerfile.explore
+    environment:
+      DB_HOST: postgres
+    ports:
+      - "2718:2718"
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - postgres
+    networks:
+      - taxi-network
+
+  data-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+    networks:
+      - taxi-network
+
+networks:
+  taxi-network:
+    driver: bridge

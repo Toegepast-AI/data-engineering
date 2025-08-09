@@ -2,3 +2,5 @@ marimo==0.10.15
 jupyter==1.0.0
 notebook==7.0.6
 ipykernel==6.25.2
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.7
