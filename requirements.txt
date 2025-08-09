@@ -1,4 +1,5 @@
-pandas==2.0.3
-numpy==1.24.3
+pandas==2.2.2
+numpy==1.26.4
 python-dateutil==2.8.2
 pytz==2023.3
+marimo==0.10.15
