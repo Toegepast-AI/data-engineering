@@ -1,6 +1,6 @@
 # Data Engineering GCP
 
-A comprehensive collection of data engineering patterns, tools, and best practices for Google Cloud Platform (and multi-cloud environments).
+A comprehensive collection of data engineering patterns, tools, and best practices for Google Cloud Platform, Azure, AWS and Openshift.
 
 ## 📁 Repository Structure
 
@@ -78,12 +78,3 @@ We're starting with PostgreSQL patterns in `01-foundations/postgres/` as the fou
 - [ ] Airflow orchestration
 - [ ] Terraform infrastructure setup
 - [ ] Multi-cloud adaptations
-
-## 🤝 Contributing
-
-Each pattern should include:
-- Clear documentation
-- Working examples
-- Docker setup for local testing
-- Tests where applicable
-- Multi-cloud considerations
